@@ -45,11 +45,7 @@ func main()  {
 				wg.Done()
 				return nil
 			})
-		}
-	}
 
-	for i := 0; i< 256; i++ {
-		for j := 0; j < 256; j++ {
 			for k := 0; k < 256; k++ {
 				ip := "10." + fmt.Sprintf("%d", i) + "." + fmt.Sprintf("%d", j) + "." + fmt.Sprintf("%d", k)
 				wg.Add(1)

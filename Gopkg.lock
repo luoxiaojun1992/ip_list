@@ -2,12 +2,12 @@
 
 
 [[projects]]
-  digest = "1:2d3b4c5e58eb75c598774ee731c9c2c6058110a2bae91a8be85ce0f627a2482f"
+  branch = "master"
+  digest = "1:faa2338550a62277134fba1a53573214e7f95437168b547ac838e54c59cf4974"
   name = "github.com/panjf2000/ants"
   packages = ["."]
   pruneopts = "UT"
-  revision = "ed55924e35ed21e28dce82ccba8146eef17110e9"
-  version = "v3.6"
+  revision = "af376f1b7b59dc488458bcecd4273f0fcde33c55"
 
 [solve-meta]
   analyzer-name = "dep"

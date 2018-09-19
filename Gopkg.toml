@@ -27,7 +27,7 @@
 
 [[constraint]]
   name = "github.com/panjf2000/ants"
-  version = "3.6.0"
+  branch = "master"
 
 [prune]
   go-tests = true

@@ -25,6 +25,7 @@ func main()  {
 	defer pool.Release()
 
 	var wg sync.WaitGroup
+
 	for i := 0; i< 256; i++ {
 		for j := 0; j < 256; j++ {
 			ip := "192.168." + fmt.Sprintf("%d", i) + "." + fmt.Sprintf("%d", j)
@@ -46,14 +47,12 @@ func main()  {
 			})
 		}
 	}
-	wg.Wait()
 
-	var wg2 sync.WaitGroup
 	for i := 0; i< 256; i++ {
 		for j := 0; j < 256; j++ {
 			for k := 0; k < 256; k++ {
 				ip := "10." + fmt.Sprintf("%d", i) + "." + fmt.Sprintf("%d", j) + "." + fmt.Sprintf("%d", k)
-				wg2.Add(1)
+				wg.Add(1)
 				pool.Submit(func() error {
 					cmd := exec.Command("ping", ip, "-c", "1", "-W", "5")
 					output, err := cmd.Output()
@@ -66,11 +65,12 @@ func main()  {
 							fmt.Println(ip + "Live")
 						}
 					}
-					wg2.Done()
+					wg.Done()
 					return nil
 				})
 			}
 		}
 	}
-	wg2.Wait()
+
+	wg.Wait()
 }

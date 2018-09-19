@@ -1,13 +1,13 @@
 package main
 
 import (
-	"os/exec"
-	"strings"
+	"flag"
 	"fmt"
-	"sync"
 	"github.com/panjf2000/ants"
 	"log"
-	"flag"
+	"os/exec"
+	"strings"
+	"sync"
 )
 
 var poolSize int
@@ -21,17 +21,17 @@ func ping(ip string) {
 	cmd := exec.Command("ping", ip, "-c", "1", "-W", "5")
 	output, err := cmd.Output()
 	if err != nil {
-		fmt.Println(ip + "Blocked")
+		fmt.Println(ip + " is blocked")
 	} else {
 		if strings.Contains(string(output), "100.0% packet loss") {
-			fmt.Println(ip + "Blocked")
+			fmt.Println(ip + " is blocked")
 		} else {
-			fmt.Println(ip + "Live")
+			fmt.Println(ip + " is live")
 		}
 	}
 }
 
-func main()  {
+func main() {
 	pool, err := ants.NewPool(poolSize)
 	if err != nil {
 		log.Fatal(err)
@@ -40,7 +40,7 @@ func main()  {
 
 	var wg sync.WaitGroup
 
-	for i := 0; i< 256; i++ {
+	for i := 0; i < 256; i++ {
 		for j := 0; j < 256; j++ {
 			ip := "192.168." + fmt.Sprintf("%d", i) + "." + fmt.Sprintf("%d", j)
 			wg.Add(1)
@@ -58,7 +58,7 @@ func main()  {
 					wg.Done()
 					return nil
 				})
-				ip2 := "10." + fmt.Sprintf("%d", i) + "." + fmt.Sprintf("%d", j) + "." + fmt.Sprintf("%d", k + 1)
+				ip2 := "10." + fmt.Sprintf("%d", i) + "." + fmt.Sprintf("%d", j) + "." + fmt.Sprintf("%d", k+1)
 				wg.Add(1)
 				pool.Submit(func() error {
 					ping(ip2)

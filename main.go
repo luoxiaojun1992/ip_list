@@ -44,6 +44,14 @@ func ping(ip string) {
 	}
 }
 
+func getIp(base string, segment ...int) string {
+	for _, val := range segment {
+		base = base + "." + fmt.Sprintf("%d", val)
+	}
+
+	return base
+}
+
 func addTask(task func() error) {
 	wg.Add(1)
 	pool.Submit(func() error {
@@ -67,19 +75,19 @@ func main() {
 
 	for i := 0; i < 256; i++ {
 		for j := 0; j < 256; j++ {
-			ip := "192.168." + fmt.Sprintf("%d", i) + "." + fmt.Sprintf("%d", j)
+			ip := getIp("192.168", i, j)
 			addTask(func() error {
 				ping(ip)
 				return nil
 			})
 
 			for k := 0; k < 256; k = k + 2 {
-				ip1 := "10." + fmt.Sprintf("%d", i) + "." + fmt.Sprintf("%d", j) + "." + fmt.Sprintf("%d", k)
+				ip1 := getIp("10", i, j, k)
 				addTask(func() error {
 					ping(ip1)
 					return nil
 				})
-				ip2 := "10." + fmt.Sprintf("%d", i) + "." + fmt.Sprintf("%d", j) + "." + fmt.Sprintf("%d", k+1)
+				ip2 := getIp("10", i, j, k+1)
 				addTask(func() error {
 					ping(ip2)
 					return nil

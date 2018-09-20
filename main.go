@@ -44,10 +44,10 @@ func ping(ip string) {
 	}
 }
 
-func addTask(task func(args []interface{}) error, args ...interface{}) {
+func addTask(task func() error) {
 	wg.Add(1)
 	pool.Submit(func() error {
-		err := task(args)
+		err := task()
 		wg.Done()
 		return err
 	})
@@ -67,20 +67,23 @@ func main() {
 
 	for i := 0; i < 256; i++ {
 		for j := 0; j < 256; j++ {
-			addTask(func(args []interface{}) error {
-				ping(args[0].(string))
+			ip := "192.168." + fmt.Sprintf("%d", i) + "." + fmt.Sprintf("%d", j)
+			addTask(func() error {
+				ping(ip)
 				return nil
-			}, "192.168." + fmt.Sprintf("%d", i) + "." + fmt.Sprintf("%d", j))
+			})
 
 			for k := 0; k < 256; k = k + 2 {
-				addTask(func(args []interface{}) error {
-					ping(args[0].(string))
+				ip1 := "10." + fmt.Sprintf("%d", i) + "." + fmt.Sprintf("%d", j) + "." + fmt.Sprintf("%d", k)
+				addTask(func() error {
+					ping(ip1)
 					return nil
-				}, "10." + fmt.Sprintf("%d", i) + "." + fmt.Sprintf("%d", j) + "." + fmt.Sprintf("%d", k))
-				addTask(func(args []interface{}) error {
-					ping(args[0].(string))
+				})
+				ip2 := "10." + fmt.Sprintf("%d", i) + "." + fmt.Sprintf("%d", j) + "." + fmt.Sprintf("%d", k+1)
+				addTask(func() error {
+					ping(ip2)
 					return nil
-				}, "10." + fmt.Sprintf("%d", i) + "." + fmt.Sprintf("%d", j) + "." + fmt.Sprintf("%d", k+1))
+				})
 			}
 		}
 	}

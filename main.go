@@ -8,13 +8,26 @@ import (
 	"os/exec"
 	"strings"
 	"sync"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 var poolSize int
 
+var pool *ants.Pool
+
+var wg sync.WaitGroup
+
 func init() {
 	flag.IntVar(&poolSize, "pool", 20000, "Pool Size")
 	flag.Parse()
+
+	var err error
+	pool, err = ants.NewPool(poolSize)
+	if err != nil {
+		log.Fatalln(err)
+	}
 }
 
 func ping(ip string) {
@@ -31,40 +44,43 @@ func ping(ip string) {
 	}
 }
 
+func addTask(task func(args []interface{}) error, args ...interface{}) {
+	wg.Add(1)
+	pool.Submit(func() error {
+		err := task(args)
+		wg.Done()
+		return err
+	})
+}
+
 func main() {
-	pool, err := ants.NewPool(poolSize)
-	if err != nil {
-		log.Fatal(err)
-	}
 	defer pool.Release()
 
-	var wg sync.WaitGroup
+	go func() {
+		ch := make(chan os.Signal)
+		signal.Notify(ch, syscall.SIGINT)
+		<-ch
+		pool.Release()
+		log.Println("Stopped.")
+		os.Exit(1)
+	}()
 
 	for i := 0; i < 256; i++ {
 		for j := 0; j < 256; j++ {
-			ip := "192.168." + fmt.Sprintf("%d", i) + "." + fmt.Sprintf("%d", j)
-			wg.Add(1)
-			pool.Submit(func() error {
-				ping(ip)
-				wg.Done()
+			addTask(func(args []interface{}) error {
+				ping(args[0].(string))
 				return nil
-			})
+			}, "192.168." + fmt.Sprintf("%d", i) + "." + fmt.Sprintf("%d", j))
 
 			for k := 0; k < 256; k = k + 2 {
-				ip1 := "10." + fmt.Sprintf("%d", i) + "." + fmt.Sprintf("%d", j) + "." + fmt.Sprintf("%d", k)
-				wg.Add(1)
-				pool.Submit(func() error {
-					ping(ip1)
-					wg.Done()
+				addTask(func(args []interface{}) error {
+					ping(args[0].(string))
 					return nil
-				})
-				ip2 := "10." + fmt.Sprintf("%d", i) + "." + fmt.Sprintf("%d", j) + "." + fmt.Sprintf("%d", k+1)
-				wg.Add(1)
-				pool.Submit(func() error {
-					ping(ip2)
-					wg.Done()
+				}, "10." + fmt.Sprintf("%d", i) + "." + fmt.Sprintf("%d", j) + "." + fmt.Sprintf("%d", k))
+				addTask(func(args []interface{}) error {
+					ping(args[0].(string))
 					return nil
-				})
+				}, "10." + fmt.Sprintf("%d", i) + "." + fmt.Sprintf("%d", j) + "." + fmt.Sprintf("%d", k+1))
 			}
 		}
 	}

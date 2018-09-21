@@ -73,6 +73,11 @@ func main() {
 		os.Exit(1)
 	}()
 
+	addTask(func() error {
+		ping("127.0.0.1")
+		return nil
+	})
+
 	for i := 0; i < 256; i++ {
 		for j := 0; j < 256; j++ {
 			ip := getIp("192.168", i, j)
@@ -92,6 +97,19 @@ func main() {
 					ping(ip2)
 					return nil
 				})
+
+				if i >= 16 && i <= 31 {
+					ip3 := getIp("172", i, j, k)
+					addTask(func() error {
+						ping(ip3)
+						return nil
+					})
+					ip4 := getIp("172", i, j, k+1)
+					addTask(func() error {
+						ping(ip4)
+						return nil
+					})
+				}
 			}
 		}
 	}
